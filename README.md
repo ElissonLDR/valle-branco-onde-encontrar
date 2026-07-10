@@ -31,7 +31,9 @@ valle-branco-onde-encontrar/
 └── public/                           # mapa (CSS + JS)
 ```
 
-## API n8n
+## API n8n + SAP B1
+
+Workflow: https://n8n.v4companyamaral.com/workflow/lBNujNGwhttefPIl?projectId=ZqW5ySVXaI1Z9iy2
 
 | Método | Rota | Uso |
 |--------|------|-----|
@@ -40,6 +42,17 @@ valle-branco-onde-encontrar/
 | GET | `/wp-json/valle-branco/v1/locais` | mapa (público) |
 
 Header: `X-VB-API-Key: sua-chave`
+
+Aceita campos SAP flat (`ItemCode`, `CardCode`, `DocNum`…) ou JSON organizado (`produto` / `estabelecimento`).
+
+| Tabela SAP | Uso |
+|------------|-----|
+| OINV | Notas |
+| ORDR + RDR1 | Pedidos e itens |
+| OITM | Produtos |
+| OITB | Grupo / categoria |
+| OCRD | Cliente → ponto no mapa |
+| OCPR / OSLP | Contato / vendedor (observação) |
 
 ## Subir no site publicado
 

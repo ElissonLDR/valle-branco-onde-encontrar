@@ -47,6 +47,8 @@ class VB_OE_Relacao {
 		$sku  = isset( $dados['sku'] ) ? sanitize_text_field( $dados['sku'] ) : '';
 		$nome = isset( $dados['nome'] ) ? sanitize_text_field( $dados['nome'] ) : '';
 
+		$post_id = 0;
+
 		if ( $sku ) {
 			$encontrados = get_posts(
 				array(
@@ -59,32 +61,36 @@ class VB_OE_Relacao {
 				)
 			);
 			if ( ! empty( $encontrados ) ) {
-				return (int) $encontrados[0];
+				$post_id = (int) $encontrados[0];
 			}
 		}
 
-		if ( $nome ) {
-			$existente = self::buscar_por_titulo( 'vb_produto', $nome );
-			if ( $existente ) {
-				return $existente;
+		if ( ! $post_id && $nome ) {
+			$post_id = self::buscar_por_titulo( 'vb_produto', $nome );
+		}
+
+		if ( ! $post_id ) {
+			if ( ! $nome && ! $sku ) {
+				return 0;
 			}
-		}
-
-		if ( ! $nome ) {
-			return 0;
-		}
-
-		$post_id = wp_insert_post(
-			array(
-				'post_type'   => 'vb_produto',
-				'post_title'  => $nome,
-				'post_status' => 'publish',
-			),
-			true
-		);
-
-		if ( is_wp_error( $post_id ) ) {
-			return 0;
+			$post_id = wp_insert_post(
+				array(
+					'post_type'   => 'vb_produto',
+					'post_title'  => $nome ? $nome : $sku,
+					'post_status' => 'publish',
+				),
+				true
+			);
+			if ( is_wp_error( $post_id ) ) {
+				return 0;
+			}
+		} elseif ( $nome && get_the_title( $post_id ) !== $nome ) {
+			wp_update_post(
+				array(
+					'ID'         => $post_id,
+					'post_title' => $nome,
+				)
+			);
 		}
 
 		if ( $sku ) {
@@ -107,44 +113,60 @@ class VB_OE_Relacao {
 	 * @return int ID do estabelecimento.
 	 */
 	public static function encontrar_ou_criar_estabelecimento( $dados ) {
-		$nome     = isset( $dados['nome'] ) ? sanitize_text_field( $dados['nome'] ) : '';
-		$cidade   = isset( $dados['cidade'] ) ? sanitize_text_field( $dados['cidade'] ) : '';
-		$endereco = isset( $dados['endereco'] ) ? sanitize_text_field( $dados['endereco'] ) : '';
+		$nome       = isset( $dados['nome'] ) ? sanitize_text_field( $dados['nome'] ) : '';
+		$cidade     = isset( $dados['cidade'] ) ? sanitize_text_field( $dados['cidade'] ) : '';
+		$endereco   = isset( $dados['endereco'] ) ? sanitize_text_field( $dados['endereco'] ) : '';
+		$codigo_sap = isset( $dados['codigo_sap'] ) ? sanitize_text_field( $dados['codigo_sap'] ) : '';
 
-		if ( ! $nome ) {
+		if ( ! $nome && ! $codigo_sap ) {
 			return 0;
 		}
 
-		// Tenta achar pelo nome + cidade.
-		$query = new WP_Query(
-			array(
-				'post_type'      => 'vb_estabelecimento',
-				'posts_per_page' => 1,
-				'post_status'    => 'any',
-				'title'          => $nome,
-				'meta_query'     => $cidade
-					? array(
-						array(
-							'key'   => '_vb_cidade',
-							'value' => $cidade,
-						),
-					)
-					: array(),
-				'fields'         => 'ids',
-			)
-		);
+		$post_id = 0;
 
-		if ( $query->have_posts() ) {
-			$post_id = (int) $query->posts[0];
-		} else {
-			$post_id = self::buscar_por_titulo( 'vb_estabelecimento', $nome );
+		// Prioridade: CardCode do SAP (OCRD).
+		if ( $codigo_sap ) {
+			$por_codigo = get_posts(
+				array(
+					'post_type'      => 'vb_estabelecimento',
+					'posts_per_page' => 1,
+					'post_status'    => 'any',
+					'meta_key'       => '_vb_codigo_sap',
+					'meta_value'     => $codigo_sap,
+					'fields'         => 'ids',
+				)
+			);
+			if ( ! empty( $por_codigo ) ) {
+				$post_id = (int) $por_codigo[0];
+			}
+		}
+
+		if ( ! $post_id && $nome ) {
+			$query = new WP_Query(
+				array(
+					'post_type'      => 'vb_estabelecimento',
+					'posts_per_page' => 1,
+					'post_status'    => 'any',
+					'title'          => $nome,
+					'meta_query'     => $cidade
+						? array(
+							array(
+								'key'   => '_vb_cidade',
+								'value' => $cidade,
+							),
+						)
+						: array(),
+					'fields'         => 'ids',
+				)
+			);
+			$post_id = $query->have_posts() ? (int) $query->posts[0] : self::buscar_por_titulo( 'vb_estabelecimento', $nome );
 		}
 
 		if ( ! $post_id ) {
 			$post_id = wp_insert_post(
 				array(
 					'post_type'   => 'vb_estabelecimento',
-					'post_title'  => $nome,
+					'post_title'  => $nome ? $nome : $codigo_sap,
 					'post_status' => 'publish',
 				),
 				true
@@ -152,16 +174,24 @@ class VB_OE_Relacao {
 			if ( is_wp_error( $post_id ) ) {
 				return 0;
 			}
+		} elseif ( $nome ) {
+			wp_update_post(
+				array(
+					'ID'         => $post_id,
+					'post_title' => $nome,
+				)
+			);
 		}
 
 		$metas = array(
-			'_vb_tipo'     => isset( $dados['tipo'] ) ? sanitize_key( $dados['tipo'] ) : 'mercado',
-			'_vb_endereco' => $endereco,
-			'_vb_cidade'   => $cidade,
-			'_vb_uf'       => isset( $dados['uf'] ) ? strtoupper( sanitize_text_field( $dados['uf'] ) ) : '',
-			'_vb_cep'      => isset( $dados['cep'] ) ? sanitize_text_field( $dados['cep'] ) : '',
-			'_vb_lat'      => isset( $dados['lat'] ) ? (string) floatval( $dados['lat'] ) : '',
-			'_vb_lng'      => isset( $dados['lng'] ) ? (string) floatval( $dados['lng'] ) : '',
+			'_vb_codigo_sap' => $codigo_sap,
+			'_vb_tipo'       => isset( $dados['tipo'] ) ? sanitize_key( $dados['tipo'] ) : 'mercado',
+			'_vb_endereco'   => $endereco,
+			'_vb_cidade'     => $cidade,
+			'_vb_uf'         => isset( $dados['uf'] ) ? strtoupper( sanitize_text_field( $dados['uf'] ) ) : '',
+			'_vb_cep'        => isset( $dados['cep'] ) ? sanitize_text_field( $dados['cep'] ) : '',
+			'_vb_lat'        => isset( $dados['lat'] ) && '' !== $dados['lat'] ? (string) floatval( $dados['lat'] ) : '',
+			'_vb_lng'        => isset( $dados['lng'] ) && '' !== $dados['lng'] ? (string) floatval( $dados['lng'] ) : '',
 		);
 
 		foreach ( $metas as $chave => $valor ) {
@@ -180,13 +210,16 @@ class VB_OE_Relacao {
 	 * @return array|WP_Error
 	 */
 	public static function sincronizar_da_nota( $payload ) {
+		// Aceita JSON amigável ou campos SAP (CardCode, ItemCode, DocNum…).
+		$payload = VB_OE_SAP::normalizar_item( $payload );
+
 		$produto = self::encontrar_ou_criar_produto( $payload['produto'] ?? array() );
 		$local   = self::encontrar_ou_criar_estabelecimento( $payload['estabelecimento'] ?? array() );
 
 		if ( ! $produto || ! $local ) {
 			return new WP_Error(
 				'vb_oe_dados_invalidos',
-				'Produto ou estabelecimento inválido.',
+				'Produto ou estabelecimento inválido. Envie ItemCode/ItemName e CardCode/CardName.',
 				array( 'status' => 400 )
 			);
 		}
@@ -207,6 +240,8 @@ class VB_OE_Relacao {
 			'relacao_id'         => $id,
 			'produto_id'         => $produto,
 			'estabelecimento_id' => $local,
+			'codigo_sap'         => $payload['estabelecimento']['codigo_sap'] ?? '',
+			'sku'                => $payload['produto']['sku'] ?? '',
 			'mensagem'           => 'Produto vinculado ao local com sucesso.',
 		);
 	}

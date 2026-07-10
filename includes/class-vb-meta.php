@@ -87,6 +87,7 @@ class VB_OE_Meta {
 		wp_nonce_field( 'vb_oe_save_estabelecimento', 'vb_oe_estab_nonce' );
 
 		$tipo     = get_post_meta( $post->ID, '_vb_tipo', true );
+		$codigo   = get_post_meta( $post->ID, '_vb_codigo_sap', true );
 		$endereco = get_post_meta( $post->ID, '_vb_endereco', true );
 		$cidade   = get_post_meta( $post->ID, '_vb_cidade', true );
 		$uf       = get_post_meta( $post->ID, '_vb_uf', true );
@@ -95,6 +96,10 @@ class VB_OE_Meta {
 		$lng      = get_post_meta( $post->ID, '_vb_lng', true );
 		$tipos    = self::tipos_estabelecimento();
 		?>
+		<p>
+			<label for="vb_codigo_sap"><strong>Código SAP (CardCode)</strong></label><br>
+			<input type="text" class="widefat" id="vb_codigo_sap" name="vb_codigo_sap" value="<?php echo esc_attr( $codigo ); ?>" placeholder="C00001">
+		</p>
 		<p>
 			<label for="vb_tipo"><strong>Tipo</strong></label><br>
 			<select id="vb_tipo" name="vb_tipo" class="widefat">
@@ -189,13 +194,14 @@ class VB_OE_Meta {
 		}
 
 		$map = array(
-			'vb_tipo'     => '_vb_tipo',
-			'vb_endereco' => '_vb_endereco',
-			'vb_cidade'   => '_vb_cidade',
-			'vb_uf'       => '_vb_uf',
-			'vb_cep'      => '_vb_cep',
-			'vb_lat'      => '_vb_lat',
-			'vb_lng'      => '_vb_lng',
+			'vb_codigo_sap' => '_vb_codigo_sap',
+			'vb_tipo'       => '_vb_tipo',
+			'vb_endereco'   => '_vb_endereco',
+			'vb_cidade'     => '_vb_cidade',
+			'vb_uf'         => '_vb_uf',
+			'vb_cep'        => '_vb_cep',
+			'vb_lat'        => '_vb_lat',
+			'vb_lng'        => '_vb_lng',
 		);
 
 		foreach ( $map as $campo => $meta ) {
