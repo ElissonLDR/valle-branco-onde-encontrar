@@ -528,9 +528,7 @@
 
 		g.map = L.map(g.mapaEl, {
 			scrollWheelZoom: false,
-			zoomSnap: 0.25,
-			zoomDelta: 0.5,
-			wheelPxPerZoomLevel: 120,
+			wheelPxPerZoomLevel: 60,
 		}).setView([cfg.mapaLat, cfg.mapaLng], cfg.mapaZoom);
 
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -538,22 +536,38 @@
 			maxZoom: 18,
 		}).addTo(g.map);
 
+		// Ctrl / ⌘ / Alt + rolagem = zoom nativo do Leaflet (rápido).
 		var container = g.map.getContainer();
 		container.addEventListener(
 			'wheel',
 			function (e) {
-				if (!e.ctrlKey && !e.metaKey && !e.altKey) {
-					return;
+				var comMod = e.ctrlKey || e.metaKey || e.altKey;
+				if (comMod) {
+					e.preventDefault();
+					var jaAtivo = g.map.scrollWheelZoom.enabled();
+					if (!jaAtivo) {
+						g.map.scrollWheelZoom.enable();
+						// Primeiro tick: o listener do Leaflet ainda não existia.
+						if (g.map.scrollWheelZoom._onWheelScroll) {
+							g.map.scrollWheelZoom._onWheelScroll(e);
+						}
+					}
+				} else if (g.map.scrollWheelZoom.enabled()) {
+					g.map.scrollWheelZoom.disable();
 				}
-				e.preventDefault();
-				e.stopPropagation();
-				var atual = g.map.getZoom();
-				var passo = 0.35;
-				var alvo = e.deltaY > 0 ? atual - passo : atual + passo;
-				g.map.setZoom(alvo, { animate: true, duration: 0.25 });
 			},
 			{ passive: false }
 		);
+		container.addEventListener('mouseleave', function () {
+			if (g.map.scrollWheelZoom.enabled()) {
+				g.map.scrollWheelZoom.disable();
+			}
+		});
+		window.addEventListener('keyup', function (e) {
+			if ((e.key === 'Control' || e.key === 'Meta' || e.key === 'Alt') && g.map && g.map.scrollWheelZoom.enabled()) {
+				g.map.scrollWheelZoom.disable();
+			}
+		});
 
 		if (!container.querySelector('.vb-oe-zoom-hint')) {
 			var hint = document.createElement('p');
