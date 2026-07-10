@@ -47,11 +47,13 @@ class VB_OE_Elementor {
 		require_once VB_OE_PATH . 'includes/elementor/class-widget-mapa.php';
 		require_once VB_OE_PATH . 'includes/elementor/class-widget-busca.php';
 		require_once VB_OE_PATH . 'includes/elementor/class-widget-filtro.php';
+		require_once VB_OE_PATH . 'includes/elementor/class-widget-produtos.php';
 		require_once VB_OE_PATH . 'includes/elementor/class-widget-lista.php';
 
 		$widgets_manager->register( new VB_OE_Widget_Mapa() );
 		$widgets_manager->register( new VB_OE_Widget_Busca() );
 		$widgets_manager->register( new VB_OE_Widget_Filtro() );
+		$widgets_manager->register( new VB_OE_Widget_Produtos() );
 		$widgets_manager->register( new VB_OE_Widget_Lista() );
 	}
 }

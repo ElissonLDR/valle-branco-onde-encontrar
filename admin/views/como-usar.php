@@ -23,15 +23,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	<div class="vb-oe-card-ajuda">
 		<h2>2. Monte a página no Elementor</h2>
-		<p>No editor do Elementor, procure a categoria <strong>Valle Branco</strong>. Há 4 peças:</p>
+		<p>No editor do Elementor, procure a categoria <strong>Valle Branco</strong>. Há 5 peças:</p>
 		<ul>
-			<li><strong>Busca</strong> — campo para digitar (produto, cidade ou loja).</li>
-			<li><strong>Filtro</strong> — cidade + botão “usar minha localização”.</li>
+			<li><strong>Busca</strong> — digite e pressione Enter (no celular, toque na lupa).</li>
+			<li><strong>Filtro</strong> — cidade + “usar minha localização”.</li>
+			<li><strong>Produtos</strong> — chips “Produtos na rede” (filtra o mapa).</li>
 			<li><strong>Mapa</strong> — o mapa com os pinos.</li>
-			<li><strong>Lista</strong> — lista das lojas (opcional).</li>
+			<li><strong>Lista</strong> — estabelecimentos em grade com paginação.</li>
 		</ul>
-		<p><strong>Importante:</strong> nas 3 (ou 4) peças da mesma página, deixe o campo <em>Grupo</em> igual — por exemplo <code>padrao</code>. Assim a busca e o filtro atualizam o mapa.</p>
-		<p>Você pode posicionar cada peça onde quiser no layout (coluna esquerda, direita, etc.).</p>
+		<p><strong>Importante:</strong> em todas as peças da mesma página, deixe o campo <em>Grupo</em> igual — por exemplo <code>padrao</code>.</p>
 	</div>
 
 	<div class="vb-oe-card-ajuda">
@@ -45,6 +45,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<tr><td>Só o mapa</td><td><code>[vb_oe_mapa]</code></td></tr>
 				<tr><td>Só a busca</td><td><code>[vb_oe_busca]</code></td></tr>
 				<tr><td>Só o filtro</td><td><code>[vb_oe_filtro]</code></td></tr>
+				<tr><td>Produtos na rede</td><td><code>[vb_oe_produtos]</code></td></tr>
 				<tr><td>Lista de lojas</td><td><code>[vb_oe_lista]</code></td></tr>
 				<tr><td>Tudo junto</td><td><code>[vb_onde_encontrar]</code></td></tr>
 			</tbody>

@@ -38,6 +38,7 @@ class VB_OE_Frontend {
 		add_shortcode( 'vb_oe_mapa', array( $this, 'sc_mapa' ) );
 		add_shortcode( 'vb_oe_busca', array( $this, 'sc_busca' ) );
 		add_shortcode( 'vb_oe_filtro', array( $this, 'sc_filtro' ) );
+		add_shortcode( 'vb_oe_produtos', array( $this, 'sc_produtos' ) );
 		add_shortcode( 'vb_oe_lista', array( $this, 'sc_lista' ) );
 		add_shortcode( 'vb_onde_encontrar', array( $this, 'sc_completo' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );
@@ -168,7 +169,10 @@ class VB_OE_Frontend {
 		return sprintf(
 			'<div class="vb-oe-busca-wrap" data-vb-oe-busca data-vb-grupo="%1$s">
 				<label class="screen-reader-text" for="vb-oe-busca-%1$s">Buscar</label>
-				<input type="search" id="vb-oe-busca-%1$s" class="vb-oe-busca" placeholder="Buscar produto, cidade ou loja" autocomplete="off">
+				<input type="search" id="vb-oe-busca-%1$s" class="vb-oe-busca" placeholder="Buscar produto, cidade ou loja" autocomplete="off" enterkeyhint="search">
+				<button type="button" class="vb-oe-busca-btn" aria-label="Buscar">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+				</button>
 			</div>',
 			esc_attr( $atts['grupo'] )
 		);
@@ -192,6 +196,22 @@ class VB_OE_Frontend {
 				</select>
 				<button type="button" class="vb-oe-geo">Usar minha localização</button>
 			</div>',
+			esc_attr( $atts['grupo'] )
+		);
+	}
+
+	/**
+	 * Widget de produtos na rede (chips).
+	 *
+	 * @param array $atts Atributos.
+	 * @return string
+	 */
+	public function sc_produtos( $atts ) {
+		$atts = $this->parse_grupo( $atts, 'vb_oe_produtos' );
+		$this->enqueue_runtime();
+
+		return sprintf(
+			'<div class="vb-oe-produtos-wrap" data-vb-oe-produtos data-vb-grupo="%1$s" aria-label="Produtos na rede"></div>',
 			esc_attr( $atts['grupo'] )
 		);
 	}
@@ -229,6 +249,7 @@ class VB_OE_Frontend {
 			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- shortcodes já escapam.
 			echo $this->sc_busca( array( 'grupo' => $g ) );
 			echo $this->sc_filtro( array( 'grupo' => $g ) );
+			echo $this->sc_produtos( array( 'grupo' => $g ) );
 			echo $this->sc_mapa( array( 'grupo' => $g, 'altura' => $atts['altura'] ) );
 			echo $this->sc_lista( array( 'grupo' => $g ) );
 			?>
