@@ -217,7 +217,7 @@ class VB_OE_REST_API {
 
 			$locais[] = array(
 				'id'        => $post->ID,
-				'nome'      => $post->post_title,
+				'nome'      => wp_specialchars_decode( $post->post_title, ENT_QUOTES ),
 				'tipo'      => get_post_meta( $post->ID, '_vb_tipo', true ),
 				'endereco'  => get_post_meta( $post->ID, '_vb_endereco', true ),
 				'cidade'    => $uf ? $cidade . '/' . $uf : $cidade,

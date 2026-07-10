@@ -202,13 +202,10 @@ class VB_OE_Relacao {
 			if ( is_wp_error( $post_id ) ) {
 				return 0;
 			}
-		} elseif ( $nome ) {
-			wp_update_post(
-				array(
-					'ID'         => $post_id,
-					'post_title' => $nome,
-				)
-			);
+		}
+
+		if ( $nome ) {
+			self::definir_titulo( (int) $post_id, $nome );
 		}
 
 		$metas = array(
@@ -229,6 +226,25 @@ class VB_OE_Relacao {
 		}
 
 		return (int) $post_id;
+	}
+
+	/**
+	 * Grava o título direto no banco (evita &amp; no nome da loja).
+	 *
+	 * @param int    $post_id ID.
+	 * @param string $titulo  Título.
+	 */
+	private static function definir_titulo( $post_id, $titulo ) {
+		global $wpdb;
+		$titulo = wp_specialchars_decode( (string) $titulo, ENT_QUOTES );
+		$wpdb->update(
+			$wpdb->posts,
+			array( 'post_title' => $titulo ),
+			array( 'ID' => (int) $post_id ),
+			array( '%s' ),
+			array( '%d' )
+		);
+		clean_post_cache( (int) $post_id );
 	}
 
 	/**
