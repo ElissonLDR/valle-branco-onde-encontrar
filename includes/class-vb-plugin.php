@@ -39,8 +39,12 @@ class VB_OE_Plugin {
 			$admin->hooks();
 		}
 
-		// Front (shortcode + mapa).
+		// Front (shortcodes + mapa).
 		$front = new VB_OE_Frontend();
 		$front->hooks();
+
+		// Widgets do Elementor (os hooks só disparam se o Elementor estiver ativo).
+		$elementor = new VB_OE_Elementor();
+		$elementor->hooks();
 	}
 }

@@ -51,6 +51,15 @@ class VB_OE_Admin {
 
 		add_submenu_page(
 			'vb-onde-encontrar',
+			'Como usar',
+			'Como usar',
+			'manage_options',
+			'vb-oe-como-usar',
+			array( $this, 'pagina_como_usar' )
+		);
+
+		add_submenu_page(
+			'vb-onde-encontrar',
 			'Produtos',
 			'Produtos',
 			'edit_posts',
@@ -154,6 +163,16 @@ class VB_OE_Admin {
 		);
 
 		include VB_OE_PATH . 'admin/views/nova-entrada.php';
+	}
+
+	/**
+	 * Página “Como usar”.
+	 */
+	public function pagina_como_usar() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		include VB_OE_PATH . 'admin/views/como-usar.php';
 	}
 
 	/**

@@ -1,4 +1,40 @@
 /* Painel Onde Encontrar */
+.vb-oe-admin .vb-oe-lead {
+	font-size: 14px;
+	max-width: 720px;
+	color: #50575e;
+}
+
+.vb-oe-admin .vb-oe-card-ajuda {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px 20px;
+	margin: 16px 0;
+	max-width: 800px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.vb-oe-admin .vb-oe-card-ajuda h2 {
+	margin-top: 0;
+	font-size: 1.15rem;
+}
+
+.vb-oe-admin .vb-oe-avancado > summary {
+	cursor: pointer;
+	padding: 4px 0;
+}
+
+.vb-oe-admin .vb-oe-avancado-corpo {
+	margin-top: 12px;
+	padding-top: 8px;
+	border-top: 1px solid #eee;
+}
+
+.vb-oe-admin .vb-oe-quebra {
+	word-break: break-all;
+}
+
 .vb-oe-admin .vb-oe-filtros-admin {
 	display: flex;
 	flex-wrap: wrap;

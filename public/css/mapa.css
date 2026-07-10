@@ -1,11 +1,16 @@
-/* Mapa Onde Encontrar (front) */
+/* Peças do Onde Encontrar (podem ficar em colunas diferentes) */
 .vb-oe-wrap {
 	display: grid;
 	gap: 16px;
 	width: 100%;
 }
 
-.vb-oe-filtros {
+.vb-oe-busca-wrap,
+.vb-oe-filtro-wrap {
+	width: 100%;
+}
+
+.vb-oe-filtro-wrap {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
@@ -14,12 +19,18 @@
 
 .vb-oe-busca,
 .vb-oe-cidade {
-	flex: 1 1 180px;
+	width: 100%;
 	min-height: 40px;
 	padding: 8px 12px;
 	border: 1px solid #ccc;
 	border-radius: 4px;
 	font: inherit;
+	box-sizing: border-box;
+}
+
+.vb-oe-filtro-wrap .vb-oe-cidade {
+	flex: 1 1 180px;
+	width: auto;
 }
 
 .vb-oe-geo {
@@ -41,11 +52,13 @@
 .vb-oe-lista {
 	display: grid;
 	gap: 12px;
+	width: 100%;
 }
 
 .vb-oe-card {
 	padding: 12px 0;
 	border-bottom: 1px solid #ddd;
+	cursor: pointer;
 }
 
 .vb-oe-card h3 {
@@ -69,15 +82,24 @@
 	margin-bottom: 4px;
 }
 
+/* Layout do shortcode completo */
+.vb-oe-wrap[data-vb-oe-completo] {
+	display: grid;
+	gap: 12px;
+}
+
 @media (min-width: 900px) {
-	.vb-oe-wrap {
+	.vb-oe-wrap[data-vb-oe-completo] {
 		grid-template-columns: 1fr 1.2fr;
-		grid-template-areas:
-			"filtros filtros"
-			"lista mapa";
 	}
 
-	.vb-oe-filtros { grid-area: filtros; }
-	.vb-oe-lista { grid-area: lista; max-height: 480px; overflow: auto; }
-	.vb-oe-mapa { grid-area: mapa; }
+	.vb-oe-wrap[data-vb-oe-completo] .vb-oe-busca-wrap,
+	.vb-oe-wrap[data-vb-oe-completo] .vb-oe-filtro-wrap {
+		grid-column: 1 / -1;
+	}
+
+	.vb-oe-wrap[data-vb-oe-completo] .vb-oe-lista {
+		max-height: 480px;
+		overflow: auto;
+	}
 }

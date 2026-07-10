@@ -3,7 +3,7 @@ Contributors: vallebranco
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 
 Mapa de pontos de venda com produtos, painel de controle e API para n8n + SAP B1.
@@ -28,6 +28,11 @@ O preview visual foi feito no Lovable; este plugin é a versão WordPress de pro
 4. Crie uma página e use o shortcode `[vb_onde_encontrar]`
 
 == Changelog ==
+
+= 1.2.0 =
+* Widgets Elementor separados: Mapa, Busca, Filtro e Lista
+* Shortcodes separados com grupo compartilhado
+* Painel simplificado + página “Como usar”
 
 = 1.1.0 =
 * Aceita payload SAP B1 (ItemCode, CardCode, DocNum…) via n8n

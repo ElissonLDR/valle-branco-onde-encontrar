@@ -3,7 +3,7 @@
  * Plugin Name:       Valle Branco — Onde Encontrar
  * Plugin URI:        https://github.com/ElissonLDR/valle-branco-onde-encontrar
  * Description:       Mapa de pontos de venda com produtos, painel de controle e API para automação n8n (notas fiscais).
- * Version:           1.1.0
+ * Version:           1.2.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Valle Branco
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Constantes do plugin (úteis para atualizações e caminhos).
-define( 'VB_OE_VERSION', '1.1.0' );
+define( 'VB_OE_VERSION', '1.2.0' );
 define( 'VB_OE_DB_VERSION', '1.0.0' );
 define( 'VB_OE_FILE', __FILE__ );
 define( 'VB_OE_PATH', plugin_dir_path( __FILE__ ) );
@@ -42,6 +42,7 @@ require_once VB_OE_PATH . 'includes/class-vb-relacao.php';
 require_once VB_OE_PATH . 'includes/class-vb-rest-api.php';
 require_once VB_OE_PATH . 'includes/class-vb-admin.php';
 require_once VB_OE_PATH . 'includes/class-vb-frontend.php';
+require_once VB_OE_PATH . 'includes/class-vb-elementor.php';
 require_once VB_OE_PATH . 'includes/class-vb-updater.php';
 require_once VB_OE_PATH . 'includes/class-vb-plugin.php';
 

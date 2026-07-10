@@ -31,6 +31,31 @@ valle-branco-onde-encontrar/
 └── public/                           # mapa (CSS + JS)
 ```
 
+## Como usar no site
+
+### Elementor (recomendado)
+
+Categoria **Valle Branco**:
+
+1. **Onde Encontrar — Busca**
+2. **Onde Encontrar — Filtro**
+3. **Onde Encontrar — Mapa**
+4. **Onde Encontrar — Lista** (opcional)
+
+Deixe o campo **Grupo** igual em todas as peças da mesma página (ex.: `padrao`).
+
+### Shortcodes
+
+| Peça | Código |
+|------|--------|
+| Mapa | `[vb_oe_mapa]` |
+| Busca | `[vb_oe_busca]` |
+| Filtro | `[vb_oe_filtro]` |
+| Lista | `[vb_oe_lista]` |
+| Tudo junto | `[vb_onde_encontrar]` |
+
+No painel: **Onde Encontrar → Como usar**.
+
 ## API n8n + SAP B1
 
 Workflow: https://n8n.v4companyamaral.com/workflow/lBNujNGwhttefPIl?projectId=ZqW5ySVXaI1Z9iy2
