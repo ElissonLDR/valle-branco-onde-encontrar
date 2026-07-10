@@ -168,7 +168,7 @@ class VB_OE_SAP {
 
 	/**
 	 * Extrai estabelecimento (OCRD).
-	 * O webhook atual não manda CardName — montamos pelo endereço + cidade.
+	 * Usa CardName quando vier no webhook; senão monta pelo endereço + cidade.
 	 *
 	 * @param array $raw Dados.
 	 * @return array

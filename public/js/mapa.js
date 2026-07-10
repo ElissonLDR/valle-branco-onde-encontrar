@@ -234,9 +234,6 @@
 	}
 
 	function tituloLocal(l) {
-		if (l.nome && l.endereco && l.nome.indexOf(l.endereco) === 0) {
-			return l.endereco;
-		}
 		return l.nome || l.endereco || 'Estabelecimento';
 	}
 

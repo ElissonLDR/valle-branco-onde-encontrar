@@ -113,7 +113,7 @@ class VB_OE_Relacao {
 	 * @return int ID do estabelecimento.
 	 */
 	public static function encontrar_ou_criar_estabelecimento( $dados ) {
-		$nome       = isset( $dados['nome'] ) ? sanitize_text_field( $dados['nome'] ) : '';
+		$nome       = isset( $dados['nome'] ) ? sanitize_text_field( wp_specialchars_decode( (string) $dados['nome'], ENT_QUOTES ) ) : '';
 		$cidade     = isset( $dados['cidade'] ) ? sanitize_text_field( $dados['cidade'] ) : '';
 		$endereco   = isset( $dados['endereco'] ) ? sanitize_text_field( $dados['endereco'] ) : '';
 		$codigo_sap = isset( $dados['codigo_sap'] ) ? sanitize_text_field( $dados['codigo_sap'] ) : '';
@@ -160,6 +160,34 @@ class VB_OE_Relacao {
 				)
 			);
 			$post_id = $query->have_posts() ? (int) $query->posts[0] : self::buscar_por_titulo( 'vb_estabelecimento', $nome );
+		}
+
+		// Lojas antigas (título = endereço): casa por endereço + cidade.
+		if ( ! $post_id && $endereco ) {
+			$meta_query = array(
+				array(
+					'key'   => '_vb_endereco',
+					'value' => $endereco,
+				),
+			);
+			if ( $cidade ) {
+				$meta_query[] = array(
+					'key'   => '_vb_cidade',
+					'value' => $cidade,
+				);
+			}
+			$por_end = get_posts(
+				array(
+					'post_type'      => 'vb_estabelecimento',
+					'posts_per_page' => 1,
+					'post_status'    => 'any',
+					'meta_query'     => $meta_query,
+					'fields'         => 'ids',
+				)
+			);
+			if ( ! empty( $por_end ) ) {
+				$post_id = (int) $por_end[0];
+			}
 		}
 
 		if ( ! $post_id ) {
