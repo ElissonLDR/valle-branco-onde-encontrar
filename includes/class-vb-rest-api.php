@@ -42,6 +42,17 @@ class VB_OE_REST_API {
 			)
 		);
 
+		// Alias mais claro para o n8n (mesmo comportamento).
+		register_rest_route(
+			self::NAMESPACE,
+			'/webhook',
+			array(
+				'methods'             => array( 'POST', 'GET' ),
+				'callback'            => array( $this, 'sincronizar' ),
+				'permission_callback' => array( $this, 'check_api_key' ),
+			)
+		);
+
 		register_rest_route(
 			self::NAMESPACE,
 			'/sincronizar-lote',

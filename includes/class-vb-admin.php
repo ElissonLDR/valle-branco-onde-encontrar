@@ -187,6 +187,7 @@ class VB_OE_Admin {
 		$api_key  = get_option( 'vb_oe_api_key', '' );
 		$endpoint = rest_url( 'valle-branco/v1/sincronizar' );
 		$lote     = rest_url( 'valle-branco/v1/sincronizar-lote' );
+		$webhook  = rest_url( 'valle-branco/v1/webhook' );
 
 		include VB_OE_PATH . 'admin/views/configuracoes.php';
 	}
@@ -200,11 +201,16 @@ class VB_OE_Admin {
 		}
 		check_admin_referer( 'vb_oe_salvar_config' );
 
+		$atual = get_option( 'vb_oe_settings', array() );
+
 		$settings = array(
-			'dias_alerta' => isset( $_POST['dias_alerta'] ) ? absint( $_POST['dias_alerta'] ) : 90,
-			'mapa_zoom'   => isset( $_POST['mapa_zoom'] ) ? absint( $_POST['mapa_zoom'] ) : 7,
-			'mapa_lat'   => isset( $_POST['mapa_lat'] ) ? floatval( $_POST['mapa_lat'] ) : -23.0,
-			'mapa_lng'   => isset( $_POST['mapa_lng'] ) ? floatval( $_POST['mapa_lng'] ) : -49.5,
+			'dias_alerta'     => isset( $_POST['dias_alerta'] ) ? absint( $_POST['dias_alerta'] ) : ( $atual['dias_alerta'] ?? 90 ),
+			'mapa_zoom'      => isset( $_POST['mapa_zoom'] ) ? absint( $_POST['mapa_zoom'] ) : ( $atual['mapa_zoom'] ?? 7 ),
+			'mapa_lat'       => isset( $_POST['mapa_lat'] ) ? floatval( $_POST['mapa_lat'] ) : ( $atual['mapa_lat'] ?? -23.0 ),
+			'mapa_lng'       => isset( $_POST['mapa_lng'] ) ? floatval( $_POST['mapa_lng'] ) : ( $atual['mapa_lng'] ?? -49.5 ),
+			'n8n_webhook_url' => isset( $_POST['n8n_webhook_url'] )
+				? esc_url_raw( wp_unslash( $_POST['n8n_webhook_url'] ) )
+				: ( $atual['n8n_webhook_url'] ?? '' ),
 		);
 
 		update_option( 'vb_oe_settings', $settings );

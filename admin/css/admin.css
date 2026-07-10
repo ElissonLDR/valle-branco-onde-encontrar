@@ -68,7 +68,11 @@
 	border-radius: 4px;
 }
 
-.vb-oe-admin .vb-oe-chave {
-	font-size: 13px;
-	word-break: break-all;
+.vb-oe-admin .vb-oe-passos {
+	max-width: 640px;
+	line-height: 1.5;
+}
+
+.vb-oe-admin .vb-oe-passos li {
+	margin-bottom: 8px;
 }

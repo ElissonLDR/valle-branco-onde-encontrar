@@ -21,7 +21,16 @@ Baseado no preview Lovable (mapa, filtros, estabelecimentos × produtos), com:
 
 ### Workflow n8n
 
-https://n8n.v4companyamaral.com/workflow/lBNujNGwhttefPIl?projectId=ZqW5ySVXaI1Z9iy2
+- Fluxo: https://n8n.v4companyamaral.com/workflow/lBNujNGwhttefPIl?projectId=ZqW5ySVXaI1Z9iy2
+- Webhook de entrada (n8n): https://n8n.v4companyamaral.com/webhook-test/8f02e2f2-0a49-4daf-9dfd-b8f55e7788ff
+
+**Direção dos dados**
+
+1. Algo chama o webhook do **n8n** → n8n lê o SAP.
+2. No fim do fluxo, o n8n faz POST no **WordPress** (`/wp-json/valle-branco/v1/webhook`).
+3. O plugin atualiza mapa e relatório.
+
+`webhook-test` = só em teste no editor. Em produção use `/webhook/` (sem “test”).
 
 ### Tabelas SAP B1
 

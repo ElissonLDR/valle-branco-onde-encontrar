@@ -2,9 +2,6 @@
 /**
  * Preparado para atualizações futuras do plugin.
  *
- * Compara a versão instalada com VB_OE_VERSION / VB_OE_DB_VERSION
- * e roda migrações quando necessário.
- *
  * @package ValleBrancoOndeEncontrar
  */
 
@@ -27,7 +24,10 @@ class VB_OE_Updater {
 			VB_OE_Database::create_tables();
 		}
 
-		// Espaço para migrações futuras, ex.:
-		// if ( version_compare( $db_version, '1.1.0', '<' ) ) { ... }
+		$settings = get_option( 'vb_oe_settings', array() );
+		if ( empty( $settings['n8n_webhook_url'] ) ) {
+			$settings['n8n_webhook_url'] = 'https://n8n.v4companyamaral.com/webhook-test/8f02e2f2-0a49-4daf-9dfd-b8f55e7788ff';
+			update_option( 'vb_oe_settings', $settings );
+		}
 	}
 }
