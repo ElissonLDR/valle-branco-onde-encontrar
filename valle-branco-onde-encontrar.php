@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Constantes do plugin (úteis para atualizações e caminhos).
-define( 'VB_OE_VERSION', '1.5.1' );
+define( 'VB_OE_VERSION', '1.5.2' );
 define( 'VB_OE_DB_VERSION', '1.0.0' );
 define( 'VB_OE_FILE', __FILE__ );
 define( 'VB_OE_PATH', plugin_dir_path( __FILE__ ) );

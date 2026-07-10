@@ -421,6 +421,7 @@
 					className: 'vb-oe-leaflet-popup',
 					maxWidth: 300,
 					minWidth: 240,
+					closeButton: false,
 				});
 
 				marker.on('click', function () {
