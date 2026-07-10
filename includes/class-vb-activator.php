@@ -36,14 +36,14 @@ class VB_OE_Activator {
 					'mapa_zoom'      => 7,
 					'mapa_lat'       => -23.0,
 					'mapa_lng'       => -49.5,
-					'n8n_webhook_url' => 'https://n8n.v4companyamaral.com/webhook-test/8f02e2f2-0a49-4daf-9dfd-b8f55e7788ff',
+					'n8n_webhook_url' => VB_OE_Sync_N8N::DEFAULT_WEBHOOK,
 				)
 			);
 		} else {
 			// Garante a URL do webhook n8n em instalações antigas.
 			$settings = get_option( 'vb_oe_settings', array() );
 			if ( empty( $settings['n8n_webhook_url'] ) ) {
-				$settings['n8n_webhook_url'] = 'https://n8n.v4companyamaral.com/webhook-test/8f02e2f2-0a49-4daf-9dfd-b8f55e7788ff';
+				$settings['n8n_webhook_url'] = VB_OE_Sync_N8N::DEFAULT_WEBHOOK;
 				update_option( 'vb_oe_settings', $settings );
 			}
 		}

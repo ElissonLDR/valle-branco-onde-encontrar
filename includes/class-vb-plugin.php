@@ -46,5 +46,9 @@ class VB_OE_Plugin {
 		// Widgets do Elementor (os hooks só disparam se o Elementor estiver ativo).
 		$elementor = new VB_OE_Elementor();
 		$elementor->hooks();
+
+		// Atualização diária via webhook n8n.
+		$sync = new VB_OE_Sync_N8N();
+		$sync->hooks();
 	}
 }

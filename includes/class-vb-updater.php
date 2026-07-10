@@ -25,8 +25,16 @@ class VB_OE_Updater {
 		}
 
 		$settings = get_option( 'vb_oe_settings', array() );
-		if ( empty( $settings['n8n_webhook_url'] ) ) {
-			$settings['n8n_webhook_url'] = 'https://n8n.v4companyamaral.com/webhook-test/8f02e2f2-0a49-4daf-9dfd-b8f55e7788ff';
+		$nova     = VB_OE_Sync_N8N::DEFAULT_WEBHOOK;
+		$antiga   = isset( $settings['n8n_webhook_url'] ) ? $settings['n8n_webhook_url'] : '';
+
+		// Atualiza URL antiga (test / domínio antigo) para a de produção.
+		if (
+			empty( $antiga )
+			|| false !== strpos( $antiga, 'webhook-test' )
+			|| false !== strpos( $antiga, 'n8n.v4companyamaral.com/webhook' )
+		) {
+			$settings['n8n_webhook_url'] = $nova;
 			update_option( 'vb_oe_settings', $settings );
 		}
 	}
