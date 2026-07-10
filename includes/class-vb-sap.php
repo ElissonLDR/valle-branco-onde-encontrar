@@ -1,16 +1,9 @@
 <?php
 /**
- * Normaliza dados do SAP Business One (via n8n) para o formato do plugin.
+ * Normaliza dados do SAP / n8n (Power BI) para o formato do plugin.
  *
- * Tabelas usadas no fluxo:
- * - OCRD  Clientes (estabelecimento / ponto de venda)
- * - OITM  Produtos
- * - OITB  Grupo de itens (categoria)
- * - OINV  Notas fiscais
- * - ORDR  Pedidos
- * - RDR1  Itens do pedido
- * - OCPR  Contatos
- * - OSLP  Vendedores
+ * Formato real do webhook:
+ * [{ results: [{ tables: [{ rows: [ { "OINV - Notas[DocNum]": ..., ... } ] }] }] }]
  *
  * @package ValleBrancoOndeEncontrar
  */
@@ -25,11 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 class VB_OE_SAP {
 
 	/**
-	 * Converte um item (já juntado no n8n) para o formato interno.
+	 * Converte um item (linha do n8n) para o formato interno.
 	 *
-	 * Aceita tanto campos amigáveis quanto nomes SAP (CardCode, ItemCode…).
-	 *
-	 * @param array $raw Payload bruto do n8n.
+	 * @param array $raw Payload bruto.
 	 * @return array
 	 */
 	public static function normalizar_item( $raw ) {
@@ -37,7 +28,9 @@ class VB_OE_SAP {
 			return array();
 		}
 
-		// Se já veio no formato do plugin, só completa o que faltar.
+		// Achata chaves tipo "OCRD - Clientes[City]" → também disponíveis como City, etc.
+		$raw = self::achatar_chaves( $raw );
+
 		if ( isset( $raw['produto'] ) || isset( $raw['estabelecimento'] ) ) {
 			return self::completar_formato_plugin( $raw );
 		}
@@ -55,14 +48,15 @@ class VB_OE_SAP {
 			array( 'data_entrada', 'DocDate', 'docDate', 'TaxDate', 'CreateDate' )
 		);
 
+		$qtd   = self::primeiro_valor( $raw, array( 'Qtd Vendida', 'Quantity', 'qtd' ) );
+		$valor = self::primeiro_valor( $raw, array( 'Valor Total', 'LineTotal', 'valor' ) );
+
 		$obs_partes = array();
-		$vendedor   = self::primeiro_valor( $raw, array( 'SlpName', 'slpName', 'vendedor' ) );
-		$contato    = self::primeiro_valor( $raw, array( 'Name', 'CntctPrsn', 'contato' ) );
-		if ( $vendedor ) {
-			$obs_partes[] = 'Vendedor: ' . $vendedor;
+		if ( null !== $qtd && '' !== $qtd ) {
+			$obs_partes[] = 'Qtd: ' . $qtd;
 		}
-		if ( $contato ) {
-			$obs_partes[] = 'Contato: ' . $contato;
+		if ( null !== $valor && '' !== $valor ) {
+			$obs_partes[] = 'Valor: ' . $valor;
 		}
 		if ( ! empty( $raw['observacao'] ) ) {
 			$obs_partes[] = $raw['observacao'];
@@ -79,7 +73,29 @@ class VB_OE_SAP {
 	}
 
 	/**
-	 * Completa payload já no formato do plugin com aliases SAP.
+	 * Copia valores de chaves "Tabela[Campo]" para o nome curto do campo.
+	 *
+	 * @param array $raw Dados.
+	 * @return array
+	 */
+	public static function achatar_chaves( $raw ) {
+		foreach ( $raw as $chave => $valor ) {
+			if ( ! is_string( $chave ) ) {
+				continue;
+			}
+			// "OINV - Notas[DocNum]" ou "[Qtd Vendida]"
+			if ( preg_match( '/\[([^\]]+)\]\s*$/', $chave, $m ) ) {
+				$curto = $m[1];
+				if ( ! isset( $raw[ $curto ] ) || '' === $raw[ $curto ] || null === $raw[ $curto ] ) {
+					$raw[ $curto ] = $valor;
+				}
+			}
+		}
+		return $raw;
+	}
+
+	/**
+	 * Completa payload já no formato do plugin.
 	 *
 	 * @param array $raw Payload.
 	 * @return array
@@ -88,31 +104,17 @@ class VB_OE_SAP {
 		$produto = isset( $raw['produto'] ) && is_array( $raw['produto'] ) ? $raw['produto'] : array();
 		$local   = isset( $raw['estabelecimento'] ) && is_array( $raw['estabelecimento'] ) ? $raw['estabelecimento'] : array();
 
-		// Aliases comuns dentro de produto / estabelecimento.
 		if ( empty( $produto['sku'] ) && ! empty( $produto['ItemCode'] ) ) {
 			$produto['sku'] = $produto['ItemCode'];
 		}
 		if ( empty( $produto['nome'] ) && ! empty( $produto['ItemName'] ) ) {
 			$produto['nome'] = $produto['ItemName'];
 		}
-		if ( empty( $produto['categoria'] ) && ! empty( $produto['ItmsGrpNam'] ) ) {
-			$produto['categoria'] = $produto['ItmsGrpNam'];
-		}
-
 		if ( empty( $local['codigo_sap'] ) && ! empty( $local['CardCode'] ) ) {
 			$local['codigo_sap'] = $local['CardCode'];
 		}
 		if ( empty( $local['nome'] ) && ! empty( $local['CardName'] ) ) {
 			$local['nome'] = $local['CardName'];
-		}
-		if ( empty( $local['cidade'] ) && ! empty( $local['City'] ) ) {
-			$local['cidade'] = $local['City'];
-		}
-		if ( empty( $local['endereco'] ) && ! empty( $local['Address'] ) ) {
-			$local['endereco'] = $local['Address'];
-		}
-		if ( empty( $local['cep'] ) && ! empty( $local['ZipCode'] ) ) {
-			$local['cep'] = $local['ZipCode'];
 		}
 
 		$raw['produto']         = $produto;
@@ -129,7 +131,7 @@ class VB_OE_SAP {
 	}
 
 	/**
-	 * Extrai produto (OITM + OITB).
+	 * Extrai produto (OITM).
 	 *
 	 * @param array $raw Dados.
 	 * @return array
@@ -139,16 +141,34 @@ class VB_OE_SAP {
 		$nome = self::primeiro_valor( $raw, array( 'nome', 'ItemName', 'itemName', 'Dscription' ) );
 		$cat  = self::primeiro_valor( $raw, array( 'categoria', 'ItmsGrpNam', 'itmsGrpNam', 'ItmsGrpCod' ) );
 
+		$nome = $nome ? trim( (string) $nome ) : '';
+		if ( ! $sku && $nome ) {
+			$sku = 'SKU-' . substr( md5( mb_strtoupper( $nome ) ), 0, 12 );
+		}
+
+		$marca = '';
+		$upper = mb_strtoupper( $nome );
+		if ( false !== strpos( $upper, 'VALLE BRANCO' ) ) {
+			$marca = 'Valle Branco';
+		} elseif ( false !== strpos( $upper, 'CASTELAO' ) || false !== strpos( $upper, 'CASTELÃO' ) ) {
+			$marca = 'Castelão';
+		} elseif ( false !== strpos( $upper, 'AENE' ) ) {
+			$marca = 'Aene';
+		} elseif ( false !== strpos( $upper, 'VITA' ) ) {
+			$marca = 'Vita';
+		}
+
 		return array(
 			'sku'       => $sku ? (string) $sku : '',
-			'nome'      => $nome ? (string) $nome : '',
+			'nome'      => $nome,
 			'categoria' => $cat ? (string) $cat : '',
-			'marca'     => self::primeiro_valor( $raw, array( 'marca', 'FirmName', 'U_Marca' ) ) ?: '',
+			'marca'     => $marca,
 		);
 	}
 
 	/**
 	 * Extrai estabelecimento (OCRD).
+	 * O webhook atual não manda CardName — montamos pelo endereço + cidade.
 	 *
 	 * @param array $raw Dados.
 	 * @return array
@@ -157,26 +177,33 @@ class VB_OE_SAP {
 		$codigo = self::primeiro_valor( $raw, array( 'codigo_sap', 'CardCode', 'cardCode' ) );
 		$nome   = self::primeiro_valor( $raw, array( 'nome_local', 'CardName', 'cardName', 'CardFName' ) );
 		$cidade = self::primeiro_valor( $raw, array( 'cidade', 'City', 'city', 'County' ) );
-		$end    = self::primeiro_valor( $raw, array( 'endereco', 'Address', 'address', 'MailAddres', 'Street' ) );
+		$rua    = self::primeiro_valor( $raw, array( 'Address', 'address', 'MailAddres', 'Street', 'endereco' ) );
+		$numero = self::primeiro_valor( $raw, array( 'StreetNo', 'streetNo', 'BuildingFloorRoom' ) );
 		$cep    = self::primeiro_valor( $raw, array( 'cep', 'ZipCode', 'zipCode' ) );
-		$uf     = self::primeiro_valor( $raw, array( 'uf', 'State', 'state', 'State1' ) );
+		$uf     = self::primeiro_valor( $raw, array( 'uf', 'State1', 'State', 'state' ) );
 
-		// Tipo: se vier GroupName / U_Tipo, mapeia; senão mercado.
-		$tipo_raw = strtolower( (string) self::primeiro_valor( $raw, array( 'tipo', 'GroupName', 'U_Tipo' ) ) );
-		$tipo     = 'mercado';
-		if ( false !== strpos( $tipo_raw, 'super' ) ) {
-			$tipo = 'supermercado';
-		} elseif ( false !== strpos( $tipo_raw, 'atac' ) ) {
-			$tipo = 'atacado';
-		} elseif ( false !== strpos( $tipo_raw, 'emp' ) ) {
-			$tipo = 'emporio';
+		$endereco = trim( (string) $rua );
+		if ( $numero ) {
+			$endereco = trim( $endereco . ', ' . $numero );
+		}
+
+		if ( ! $nome ) {
+			$nome = $endereco ? $endereco : (string) $cidade;
+			if ( $cidade && $endereco ) {
+				$nome = $endereco . ' — ' . $cidade;
+			}
+		}
+
+		if ( ! $codigo ) {
+			$base   = mb_strtoupper( trim( (string) $cidade . '|' . (string) $rua . '|' . (string) $numero ) );
+			$codigo = $base ? 'LOC-' . substr( md5( $base ), 0, 12 ) : '';
 		}
 
 		return array(
 			'codigo_sap' => $codigo ? (string) $codigo : '',
 			'nome'       => $nome ? (string) $nome : '',
-			'tipo'       => $tipo,
-			'endereco'   => $end ? (string) $end : '',
+			'tipo'       => 'mercado',
+			'endereco'   => $endereco,
 			'cidade'     => $cidade ? (string) $cidade : '',
 			'uf'         => $uf ? strtoupper( substr( (string) $uf, 0, 2 ) ) : '',
 			'cep'        => $cep ? (string) $cep : '',
@@ -210,6 +237,10 @@ class VB_OE_SAP {
 	private static function formatar_data( $data ) {
 		if ( empty( $data ) ) {
 			return '';
+		}
+		// Mantém o dia da nota (evita mudar por fuso com gmdate).
+		if ( preg_match( '/^(\d{4}-\d{2}-\d{2})/', (string) $data, $m ) ) {
+			return $m[1] . ' 00:00:00';
 		}
 		$ts = strtotime( (string) $data );
 		if ( ! $ts ) {

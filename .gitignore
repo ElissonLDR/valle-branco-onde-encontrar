@@ -4,3 +4,6 @@ Thumbs.db
 *.log
 .idea/
 .vscode/
+_sample-n8n.json
+_test-parse.php
+_test-out.txt

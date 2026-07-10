@@ -177,23 +177,92 @@ class VB_OE_Sync_N8N {
 			return array();
 		}
 
-		// Lista pura.
-		if ( self::eh_lista( $dados ) ) {
+		// Formato Power BI / n8n: [ { results: [ { tables: [ { rows: [...] } ] } ] } ]
+		$rows = self::extrair_rows_powerbi( $dados );
+		if ( ! empty( $rows ) ) {
+			return $rows;
+		}
+
+		// Lista pura de itens já “flat”.
+		if ( self::eh_lista( $dados ) && self::parece_item( $dados[0] ?? null ) ) {
 			return $dados;
 		}
 
 		foreach ( array( 'itens', 'items', 'data', 'results', 'rows', 'DocumentLines', 'value' ) as $chave ) {
 			if ( isset( $dados[ $chave ] ) && is_array( $dados[ $chave ] ) && self::eh_lista( $dados[ $chave ] ) ) {
-				return $dados[ $chave ];
+				if ( self::parece_item( $dados[ $chave ][0] ?? null ) ) {
+					return $dados[ $chave ];
+				}
+				$aninhado = self::extrair_rows_powerbi( $dados[ $chave ] );
+				if ( ! empty( $aninhado ) ) {
+					return $aninhado;
+				}
 			}
 		}
 
-		// Um único registro (tem ItemCode ou CardCode).
-		if ( isset( $dados['ItemCode'] ) || isset( $dados['CardCode'] ) || isset( $dados['produto'] ) ) {
+		if ( self::parece_item( $dados ) ) {
 			return array( $dados );
 		}
 
 		return array();
+	}
+
+	/**
+	 * Percorre estrutura results → tables → rows.
+	 *
+	 * @param mixed $dados Dados.
+	 * @return array
+	 */
+	private static function extrair_rows_powerbi( $dados ) {
+		if ( ! is_array( $dados ) ) {
+			return array();
+		}
+
+		// Se for lista, tenta em cada elemento.
+		if ( self::eh_lista( $dados ) ) {
+			$todos = array();
+			foreach ( $dados as $bloco ) {
+				$parte = self::extrair_rows_powerbi( $bloco );
+				if ( $parte ) {
+					$todos = array_merge( $todos, $parte );
+				}
+			}
+			return $todos;
+		}
+
+		if ( isset( $dados['results'] ) && is_array( $dados['results'] ) ) {
+			return self::extrair_rows_powerbi( $dados['results'] );
+		}
+
+		if ( isset( $dados['tables'] ) && is_array( $dados['tables'] ) ) {
+			return self::extrair_rows_powerbi( $dados['tables'] );
+		}
+
+		if ( isset( $dados['rows'] ) && is_array( $dados['rows'] ) && self::eh_lista( $dados['rows'] ) ) {
+			return $dados['rows'];
+		}
+
+		return array();
+	}
+
+	/**
+	 * Parece uma linha de nota/produto?
+	 *
+	 * @param mixed $item Item.
+	 * @return bool
+	 */
+	private static function parece_item( $item ) {
+		if ( ! is_array( $item ) ) {
+			return false;
+		}
+		$flat = VB_OE_SAP::achatar_chaves( $item );
+		return isset( $flat['ItemName'] )
+			|| isset( $flat['ItemCode'] )
+			|| isset( $flat['CardCode'] )
+			|| isset( $flat['DocNum'] )
+			|| isset( $flat['produto'] )
+			|| isset( $item['OITM - Produtos[ItemName]'] )
+			|| isset( $item['OINV - Notas[DocNum]'] );
 	}
 
 	/**
@@ -216,13 +285,14 @@ class VB_OE_Sync_N8N {
 	 * @return array
 	 */
 	private static function listar_chaves( $dados ) {
-		if ( ! is_array( $dados ) ) {
-			return array();
+		$itens = self::extrair_itens( $dados );
+		if ( ! empty( $itens[0] ) && is_array( $itens[0] ) ) {
+			return array_keys( $itens[0] );
 		}
-		if ( self::eh_lista( $dados ) && isset( $dados[0] ) && is_array( $dados[0] ) ) {
-			return array_keys( $dados[0] );
+		if ( is_array( $dados ) && ! self::eh_lista( $dados ) ) {
+			return array_keys( $dados );
 		}
-		return array_keys( $dados );
+		return array();
 	}
 
 	/**
@@ -232,8 +302,9 @@ class VB_OE_Sync_N8N {
 	 * @return mixed
 	 */
 	private static function amostra_segura( $dados ) {
-		if ( is_array( $dados ) && self::eh_lista( $dados ) ) {
-			return array_slice( $dados, 0, 3 );
+		$itens = self::extrair_itens( $dados );
+		if ( ! empty( $itens ) ) {
+			return array_slice( $itens, 0, 3 );
 		}
 		return $dados;
 	}
