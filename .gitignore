@@ -1,0 +1,6 @@
+# Ignorar arquivos locais
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/

@@ -1,0 +1,46 @@
+<?php
+/**
+ * Orquestra o plugin (carrega módulos).
+ *
+ * @package ValleBrancoOndeEncontrar
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Classe VB_OE_Plugin
+ */
+class VB_OE_Plugin {
+
+	/**
+	 * Inicia tudo.
+	 */
+	public function run() {
+		// Atualizações de banco/versão.
+		$updater = new VB_OE_Updater();
+		$updater->maybe_update();
+
+		// CPTs.
+		add_action( 'init', array( 'VB_OE_CPT', 'register' ) );
+
+		// Metadados.
+		$meta = new VB_OE_Meta();
+		$meta->hooks();
+
+		// API REST (n8n + mapa).
+		$api = new VB_OE_REST_API();
+		$api->hooks();
+
+		// Painel.
+		if ( is_admin() ) {
+			$admin = new VB_OE_Admin();
+			$admin->hooks();
+		}
+
+		// Front (shortcode + mapa).
+		$front = new VB_OE_Frontend();
+		$front->hooks();
+	}
+}

@@ -1,0 +1,83 @@
+/* Mapa Onde Encontrar (front) */
+.vb-oe-wrap {
+	display: grid;
+	gap: 16px;
+	width: 100%;
+}
+
+.vb-oe-filtros {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.vb-oe-busca,
+.vb-oe-cidade {
+	flex: 1 1 180px;
+	min-height: 40px;
+	padding: 8px 12px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font: inherit;
+}
+
+.vb-oe-geo {
+	min-height: 40px;
+	padding: 8px 14px;
+	border: 1px solid #333;
+	background: #fff;
+	cursor: pointer;
+	font: inherit;
+}
+
+.vb-oe-mapa {
+	width: 100%;
+	min-height: 320px;
+	background: #e8ebe6;
+	z-index: 1;
+}
+
+.vb-oe-lista {
+	display: grid;
+	gap: 12px;
+}
+
+.vb-oe-card {
+	padding: 12px 0;
+	border-bottom: 1px solid #ddd;
+}
+
+.vb-oe-card h3 {
+	margin: 0 0 4px;
+	font-size: 1.05rem;
+}
+
+.vb-oe-card p {
+	margin: 0 0 6px;
+	color: #555;
+	font-size: 0.95rem;
+}
+
+.vb-oe-card ul {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.vb-oe-popup strong {
+	display: block;
+	margin-bottom: 4px;
+}
+
+@media (min-width: 900px) {
+	.vb-oe-wrap {
+		grid-template-columns: 1fr 1.2fr;
+		grid-template-areas:
+			"filtros filtros"
+			"lista mapa";
+	}
+
+	.vb-oe-filtros { grid-area: filtros; }
+	.vb-oe-lista { grid-area: lista; max-height: 480px; overflow: auto; }
+	.vb-oe-mapa { grid-area: mapa; }
+}
