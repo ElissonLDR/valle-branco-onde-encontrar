@@ -244,15 +244,27 @@ class VB_OE_Frontend {
 
 		ob_start();
 		?>
-		<div class="vb-oe-wrap" data-vb-oe-completo data-vb-grupo="<?php echo esc_attr( $g ); ?>">
-			<?php
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- shortcodes já escapam.
-			echo $this->sc_busca( array( 'grupo' => $g ) );
-			echo $this->sc_filtro( array( 'grupo' => $g ) );
-			echo $this->sc_produtos( array( 'grupo' => $g ) );
-			echo $this->sc_mapa( array( 'grupo' => $g, 'altura' => $atts['altura'] ) );
-			echo $this->sc_lista( array( 'grupo' => $g ) );
-			?>
+		<div class="vb-oe-wrap vb-oe-layout" data-vb-oe-completo data-vb-grupo="<?php echo esc_attr( $g ); ?>">
+			<div class="vb-oe-col vb-oe-col-filtros">
+				<?php
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo $this->sc_busca( array( 'grupo' => $g ) );
+				echo $this->sc_filtro( array( 'grupo' => $g ) );
+				echo $this->sc_produtos( array( 'grupo' => $g ) );
+				?>
+			</div>
+			<div class="vb-oe-col vb-oe-col-mapa">
+				<?php
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo $this->sc_mapa( array( 'grupo' => $g, 'altura' => $atts['altura'] ) );
+				?>
+			</div>
+			<div class="vb-oe-col vb-oe-col-lista">
+				<?php
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo $this->sc_lista( array( 'grupo' => $g ) );
+				?>
+			</div>
 		</div>
 		<?php
 		return ob_get_clean();
