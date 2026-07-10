@@ -47,6 +47,19 @@ $proximo     = wp_next_scheduled( VB_OE_Sync_N8N::CRON_HOOK );
 			</div>
 		<?php endif; ?>
 	<?php endif; ?>
+	<?php if ( isset( $_GET['geocode'] ) ) : ?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				Localização no mapa:
+				<?php echo esc_html( (string) ( $_GET['ok'] ?? 0 ) ); ?> encontrados,
+				<?php echo esc_html( (string) ( $_GET['falha'] ?? 0 ) ); ?> sem resultado,
+				<?php echo esc_html( (string) ( $_GET['pendentes'] ?? 0 ) ); ?> ainda pendentes.
+				<?php if ( ! empty( $_GET['pendentes'] ) ) : ?>
+					Clique de novo em “Localizar no mapa” até zerar os pendentes.
+				<?php endif; ?>
+			</p>
+		</div>
+	<?php endif; ?>
 
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 		<?php wp_nonce_field( 'vb_oe_salvar_config' ); ?>
@@ -77,6 +90,28 @@ $proximo     = wp_next_scheduled( VB_OE_Sync_N8N::CRON_HOOK );
 			<?php submit_button( 'Salvar configurações do mapa' ); ?>
 		</div>
 	</form>
+
+	<div class="vb-oe-card-ajuda">
+		<h2>Localizar no mapa (pins)</h2>
+		<p>
+			Os dados do n8n vêm com endereço e cidade, mas <strong>sem latitude/longitude</strong>.
+			Por isso os pins não apareciam. O plugin agora busca a posição pelo endereço (mesmo sem CEP).
+		</p>
+		<?php
+		$pendentes_geo = VB_OE_Geocoder::contar_pendentes();
+		$ultimo_geo    = get_transient( 'vb_oe_ultimo_geocode' );
+		?>
+		<p><strong>Ainda sem posição no mapa:</strong> <?php echo esc_html( (string) $pendentes_geo ); ?> estabelecimento(s).</p>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<?php wp_nonce_field( 'vb_oe_geocode_agora' ); ?>
+			<input type="hidden" name="action" value="vb_oe_geocode_agora">
+			<?php submit_button( 'Localizar no mapa agora', 'primary', 'submit', false ); ?>
+		</form>
+		<p class="description">Processa cerca de 25 por vez (~30 segundos). Repita até chegar a zero. Depois disso os pins e a lista de estabelecimentos no site passam a aparecer.</p>
+		<?php if ( is_array( $ultimo_geo ) ) : ?>
+			<p class="description">Última rodada: <?php echo esc_html( $ultimo_geo['quando'] ?? '' ); ?> — ok <?php echo esc_html( (string) ( $ultimo_geo['ok'] ?? 0 ) ); ?>, falha <?php echo esc_html( (string) ( $ultimo_geo['falha'] ?? 0 ) ); ?>.</p>
+		<?php endif; ?>
+	</div>
 
 	<div class="vb-oe-card-ajuda">
 		<h2>Atualização diária (n8n)</h2>

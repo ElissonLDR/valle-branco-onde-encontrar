@@ -154,6 +154,9 @@ class VB_OE_Sync_N8N {
 			}
 		}
 
+		// Depois do sync, localiza no mapa os endereços sem lat/lng.
+		VB_OE_Geocoder::agendar_agora();
+
 		return array(
 			'sucesso'       => $ok,
 			'erros'         => $falhas,
@@ -163,6 +166,7 @@ class VB_OE_Sync_N8N {
 			'url'           => $url,
 			'http'          => $code,
 			'chaves'        => self::listar_chaves( $dados ),
+			'geo_pendentes' => VB_OE_Geocoder::contar_pendentes(),
 		);
 	}
 

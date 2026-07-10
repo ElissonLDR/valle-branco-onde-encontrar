@@ -178,7 +178,7 @@ class VB_OE_REST_API {
 		$posts = get_posts(
 			array(
 				'post_type'      => 'vb_estabelecimento',
-				'posts_per_page' => 500,
+				'posts_per_page' => -1,
 				'post_status'    => 'publish',
 				'orderby'        => 'title',
 				'order'          => 'ASC',

@@ -50,5 +50,9 @@ class VB_OE_Plugin {
 		// Atualização diária via webhook n8n.
 		$sync = new VB_OE_Sync_N8N();
 		$sync->hooks();
+
+		// Geocodificação de endereços → lat/lng para o mapa.
+		$geo = new VB_OE_Geocoder();
+		$geo->hooks();
 	}
 }

@@ -1,4 +1,4 @@
-/* Peças do Onde Encontrar (podem ficar em colunas diferentes) */
+/* Peças do Onde Encontrar */
 .vb-oe-wrap {
 	display: grid;
 	gap: 16px;
@@ -36,8 +36,9 @@
 .vb-oe-geo {
 	min-height: 40px;
 	padding: 8px 14px;
-	border: 1px solid #333;
+	border: 1px solid #1a3a6b;
 	background: #fff;
+	color: #1a3a6b;
 	cursor: pointer;
 	font: inherit;
 }
@@ -51,41 +52,171 @@
 
 .vb-oe-lista {
 	display: grid;
-	gap: 12px;
+	gap: 14px;
 	width: 100%;
 }
 
+/* Card da lista (print 3) */
 .vb-oe-card {
-	padding: 12px 0;
-	border-bottom: 1px solid #ddd;
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+	padding: 16px;
+	cursor: pointer;
+	border: 1px solid #eceff3;
+}
+
+.vb-oe-card-topo {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+}
+
+.vb-oe-card-icone {
+	flex: 0 0 40px;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: #f3ebe0 url('../images/pin-valle-branco.png') center / 22px no-repeat;
+}
+
+.vb-oe-card-textos h3 {
+	margin: 0 0 4px;
+	font-size: 1.05rem;
+	color: #1a3a6b;
+	line-height: 1.25;
+}
+
+.vb-oe-card-cidade,
+.vb-oe-card-end,
+.vb-oe-popup-cidade,
+.vb-oe-popup-end {
+	margin: 0;
+	color: #6b7280;
+	font-size: 0.92rem;
+	line-height: 1.35;
+}
+
+.vb-oe-card-produtos,
+.vb-oe-popup-produtos {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid #e5e7eb;
+}
+
+.vb-oe-popup-label {
+	display: block;
+	font-size: 0.72rem;
+	letter-spacing: 0.04em;
+	font-weight: 700;
+	color: #6b7280;
+	margin-bottom: 8px;
+}
+
+.vb-oe-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.vb-oe-chip {
+	display: inline-block;
+	background: #eef1f5;
+	color: #334155;
+	border-radius: 999px;
+	padding: 5px 10px;
+	font-size: 0.8rem;
+}
+
+.vb-oe-card-acoes {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 14px;
+}
+
+.vb-oe-btn-rota,
+.vb-oe-btn-maps,
+.vb-oe-popup-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	text-decoration: none;
+	font-weight: 600;
+	font-size: 0.9rem;
+	border-radius: 999px;
+	padding: 10px 16px;
+	box-sizing: border-box;
+}
+
+.vb-oe-btn-rota,
+.vb-oe-popup-btn {
+	background: #1a3a6b;
+	color: #fff !important;
+	border: 1px solid #1a3a6b;
+}
+
+.vb-oe-btn-maps {
+	background: #fff;
+	color: #1a3a6b !important;
+	border: 1px solid #1a3a6b;
+}
+
+.vb-oe-popup-btn {
+	width: 100%;
+	margin-top: 12px;
+}
+
+/* Popup do mapa (print 5) */
+.vb-oe-leaflet-popup .leaflet-popup-content-wrapper {
+	border-radius: 14px;
+	padding: 0;
+	box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+	overflow: hidden;
+}
+
+.vb-oe-leaflet-popup .leaflet-popup-content {
+	margin: 0;
+	min-width: 240px;
+}
+
+.vb-oe-leaflet-popup .leaflet-popup-tip {
+	background: #fff;
+}
+
+.vb-oe-popup-card {
+	position: relative;
+	padding: 16px 16px 14px;
+	background: #fff;
+}
+
+.vb-oe-popup-close {
+	position: absolute;
+	top: 6px;
+	right: 8px;
+	border: 0;
+	background: transparent;
+	font-size: 20px;
+	line-height: 1;
+	color: #9ca3af;
 	cursor: pointer;
 }
 
-.vb-oe-card h3 {
-	margin: 0 0 4px;
+.vb-oe-popup-titulo {
+	margin: 0 28px 6px 0;
 	font-size: 1.05rem;
+	color: #1a3a6b;
 }
 
-.vb-oe-card p {
-	margin: 0 0 6px;
-	color: #555;
-	font-size: 0.95rem;
-}
-
-.vb-oe-card ul {
+.vb-oe-popup-produtos ul {
 	margin: 0;
 	padding-left: 18px;
+	color: #374151;
+	font-size: 0.9rem;
 }
 
-.vb-oe-popup strong {
-	display: block;
+.vb-oe-popup-produtos li {
 	margin-bottom: 4px;
-}
-
-/* Layout do shortcode completo */
-.vb-oe-wrap[data-vb-oe-completo] {
-	display: grid;
-	gap: 12px;
 }
 
 @media (min-width: 900px) {
@@ -99,7 +230,7 @@
 	}
 
 	.vb-oe-wrap[data-vb-oe-completo] .vb-oe-lista {
-		max-height: 480px;
+		max-height: 520px;
 		overflow: auto;
 	}
 }

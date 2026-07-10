@@ -97,6 +97,7 @@ class VB_OE_Frontend {
 			'vbOeMapa',
 			array(
 				'apiUrl'    => esc_url_raw( rest_url( 'valle-branco/v1/locais' ) ),
+				'pinUrl'    => esc_url_raw( VB_OE_URL . 'public/images/pin-valle-branco.png' ),
 				'mapaLat'  => isset( $settings['mapa_lat'] ) ? (float) $settings['mapa_lat'] : -23.0,
 				'mapaLng'  => isset( $settings['mapa_lng'] ) ? (float) $settings['mapa_lng'] : -49.5,
 				'mapaZoom' => isset( $settings['mapa_zoom'] ) ? (int) $settings['mapa_zoom'] : 7,
@@ -104,7 +105,7 @@ class VB_OE_Frontend {
 					'carregando' => 'Carregando pontos de venda...',
 					'nenhum'     => 'Nenhum estabelecimento encontrado.',
 					'abrirMaps'  => 'Abrir no Google Maps',
-					'produtos'   => 'Produtos',
+					'produtos'   => 'Produtos disponíveis',
 					'buscar'     => 'Buscar produto, cidade ou loja',
 					'todas'      => 'Todas as cidades',
 					'usarLocal'  => 'Usar minha localização',

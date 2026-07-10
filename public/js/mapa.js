@@ -1,6 +1,6 @@
 /**
- * Onde Encontrar — peças separadas (mapa, busca, filtro, lista)
- * Peças com o mesmo data-vb-grupo conversam entre si na página.
+ * Onde Encontrar — mapa, busca, filtro, lista
+ * Pin customizado + card no clique.
  */
 (function () {
 	'use strict';
@@ -11,6 +11,13 @@
 
 	var cfg = window.vbOeMapa;
 	var grupos = {};
+
+	var pinIcon = L.icon({
+		iconUrl: cfg.pinUrl || '',
+		iconSize: [44, 56],
+		iconAnchor: [22, 56],
+		popupAnchor: [0, -48],
+	});
 
 	function getGrupo(id) {
 		id = id || 'padrao';
@@ -39,6 +46,12 @@
 			.replace(/</g, '&lt;')
 			.replace(/>/g, '&gt;')
 			.replace(/"/g, '&quot;');
+	}
+
+	function nomeCurtoProduto(nome) {
+		return String(nome || '')
+			.replace(/\s+/g, ' ')
+			.trim();
 	}
 
 	function distanciaKm(aLat, aLng, bLat, bLng) {
@@ -111,6 +124,121 @@
 		}
 	}
 
+	function mapsUrl(l) {
+		return (
+			'https://www.google.com/maps/search/?api=1&query=' +
+			encodeURIComponent(l.lat + ',' + l.lng)
+		);
+	}
+
+	function rotaUrl(l, origem) {
+		var dest = l.lat + ',' + l.lng;
+		if (origem) {
+			return (
+				'https://www.google.com/maps/dir/?api=1&origin=' +
+				encodeURIComponent(origem.lat + ',' + origem.lng) +
+				'&destination=' +
+				encodeURIComponent(dest)
+			);
+		}
+		return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(dest);
+	}
+
+	function tituloLocal(l) {
+		// Se o título for só o endereço, usa o endereço limpo; senão o nome.
+		if (l.nome && l.endereco && l.nome.indexOf(l.endereco) === 0) {
+			return l.endereco;
+		}
+		return l.nome || l.endereco || 'Estabelecimento';
+	}
+
+	function montarPopup(l, g) {
+		var produtos = (l.produtos || [])
+			.slice(0, 8)
+			.map(function (p) {
+				return '<li>' + escapeHtml(nomeCurtoProduto(p.nome)) + '</li>';
+			})
+			.join('');
+
+		return (
+			'<div class="vb-oe-popup-card">' +
+			'<button type="button" class="vb-oe-popup-close" aria-label="Fechar">×</button>' +
+			'<h3 class="vb-oe-popup-titulo">' +
+			escapeHtml(tituloLocal(l)) +
+			'</h3>' +
+			'<p class="vb-oe-popup-cidade">' +
+			escapeHtml(l.cidade || '') +
+			'</p>' +
+			'<p class="vb-oe-popup-end">' +
+			escapeHtml(l.endereco || '') +
+			'</p>' +
+			(produtos
+				? '<div class="vb-oe-popup-produtos"><span class="vb-oe-popup-label">PRODUTOS DISPONÍVEIS</span><ul>' +
+				  produtos +
+				  '</ul></div>'
+				: '') +
+			'<a class="vb-oe-popup-btn" target="_blank" rel="noopener" href="' +
+			mapsUrl(l) +
+			'">Abrir no Google Maps</a>' +
+			'</div>'
+		);
+	}
+
+	function montarCardLista(l, g, marker) {
+		var produtos = (l.produtos || [])
+			.slice(0, 6)
+			.map(function (p) {
+				return (
+					'<span class="vb-oe-chip">' +
+					escapeHtml(nomeCurtoProduto(p.nome)) +
+					'</span>'
+				);
+			})
+			.join('');
+
+		var card = document.createElement('article');
+		card.className = 'vb-oe-card';
+		card.innerHTML =
+			'<div class="vb-oe-card-topo">' +
+			'<span class="vb-oe-card-icone" aria-hidden="true"></span>' +
+			'<div class="vb-oe-card-textos">' +
+			'<h3>' +
+			escapeHtml(tituloLocal(l)) +
+			'</h3>' +
+			'<p class="vb-oe-card-cidade">' +
+			escapeHtml(l.cidade || '') +
+			'</p>' +
+			'<p class="vb-oe-card-end">' +
+			escapeHtml(l.endereco || '') +
+			'</p>' +
+			'</div></div>' +
+			(produtos
+				? '<div class="vb-oe-card-produtos"><span class="vb-oe-popup-label">PRODUTOS DISPONÍVEIS</span><div class="vb-oe-chips">' +
+				  produtos +
+				  '</div></div>'
+				: '') +
+			'<div class="vb-oe-card-acoes">' +
+			'<a class="vb-oe-btn-rota" target="_blank" rel="noopener" href="' +
+			rotaUrl(l, g.origem) +
+			'">Traçar rota</a>' +
+			'<a class="vb-oe-btn-maps" target="_blank" rel="noopener" href="' +
+			mapsUrl(l) +
+			'">Ver no Maps</a>' +
+			'</div>';
+
+		card.addEventListener('click', function (e) {
+			if (e.target.closest('a')) {
+				return;
+			}
+			if (g.map && marker) {
+				g.map.flyTo([l.lat, l.lng], 15);
+				marker.openPopup();
+			}
+		});
+
+		return card;
+	}
+
 	function render(g) {
 		if (!g.map || !g.markers || !g.locais) {
 			return;
@@ -131,66 +259,43 @@
 		}
 
 		var bounds = [];
+		var iconOpts = cfg.pinUrl ? { icon: pinIcon } : {};
 
 		filtrados.forEach(function (l) {
-			var dist = '';
-			if (g.origem) {
-				dist =
-					' · ' +
-					distanciaKm(g.origem.lat, g.origem.lng, l.lat, l.lng).toFixed(1) +
-					' km';
+			if (!l.lat || !l.lng) {
+				return;
 			}
 
-			var produtosHtml = (l.produtos || [])
-				.map(function (p) {
-					return '<li>' + escapeHtml(p.nome) + '</li>';
-				})
-				.join('');
+			var popupHtml = montarPopup(l, g);
+			var marker = L.marker([l.lat, l.lng], iconOpts).bindPopup(popupHtml, {
+				className: 'vb-oe-leaflet-popup',
+				maxWidth: 320,
+				minWidth: 260,
+			});
 
-			var popup =
-				'<div class="vb-oe-popup"><strong>' +
-				escapeHtml(l.nome) +
-				'</strong>' +
-				escapeHtml(l.cidade || '') +
-				'<br>' +
-				escapeHtml(l.endereco || '') +
-				dist +
-				(produtosHtml
-					? '<p><em>' + cfg.i18n.produtos + '</em></p><ul>' + produtosHtml + '</ul>'
-					: '') +
-				'<p><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=' +
-				encodeURIComponent(l.lat + ',' + l.lng) +
-				'">' +
-				cfg.i18n.abrirMaps +
-				'</a></p></div>';
+			marker.on('popupopen', function (ev) {
+				var el = ev.popup.getElement();
+				if (!el) {
+					return;
+				}
+				var btn = el.querySelector('.vb-oe-popup-close');
+				if (btn) {
+					btn.onclick = function () {
+						g.map.closePopup();
+					};
+				}
+			});
 
-			var marker = L.marker([l.lat, l.lng]).bindPopup(popup);
 			g.markers.addLayer(marker);
 			bounds.push([l.lat, l.lng]);
 
 			if (g.listaEl) {
-				var card = document.createElement('article');
-				card.className = 'vb-oe-card';
-				card.innerHTML =
-					'<h3>' +
-					escapeHtml(l.nome) +
-					'</h3><p>' +
-					escapeHtml(l.cidade || '') +
-					' — ' +
-					escapeHtml(l.endereco || '') +
-					dist +
-					'</p>' +
-					(produtosHtml ? '<ul>' + produtosHtml + '</ul>' : '');
-				card.addEventListener('click', function () {
-					g.map.flyTo([l.lat, l.lng], 14);
-					marker.openPopup();
-				});
-				g.listaEl.appendChild(card);
+				g.listaEl.appendChild(montarCardLista(l, g, marker));
 			}
 		});
 
 		if (bounds.length) {
-			g.map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+			g.map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
 		}
 
 		setTimeout(function () {
@@ -284,7 +389,7 @@
 						if (g.map) {
 							L.circleMarker([g.origem.lat, g.origem.lng], {
 								radius: 8,
-								color: '#1a5c3a',
+								color: '#1a3a6b',
 							}).addTo(g.map);
 							g.map.setView([g.origem.lat, g.origem.lng], 10);
 						}
@@ -323,7 +428,6 @@
 			preencherCidades(g);
 			render(g);
 		} else if (!g.mapaEl) {
-			// Busca/filtro sozinhos ainda podem carregar dados para preencher cidades.
 			carregarDados(g);
 		}
 	}
@@ -342,7 +446,6 @@
 		boot();
 	}
 
-	// Elementor: reinicia ao editar/preview.
 	window.addEventListener('elementor/frontend/init', function () {
 		if (window.elementorFrontend && elementorFrontend.hooks) {
 			elementorFrontend.hooks.addAction('frontend/element_ready/global', function () {
