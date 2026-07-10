@@ -48,6 +48,28 @@
 	min-height: 320px;
 	background: #e8ebe6;
 	z-index: 1;
+	position: relative;
+}
+
+.vb-oe-zoom-hint {
+	pointer-events: none;
+	position: absolute;
+	bottom: 12px;
+	left: 12px;
+	z-index: 1000;
+	margin: 0;
+	padding: 6px 12px;
+	border-radius: 999px;
+	background: rgba(26, 58, 107, 0.88);
+	color: #fff;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+/* Pin sem fundo preto */
+.leaflet-marker-icon {
+	background: transparent !important;
+	border: 0 !important;
 }
 
 .vb-oe-lista {

@@ -340,19 +340,42 @@
 			return;
 		}
 
-		g.map = L.map(g.mapaEl, { scrollWheelZoom: false }).setView(
-			[cfg.mapaLat, cfg.mapaLng],
-			cfg.mapaZoom
-		);
+		g.map = L.map(g.mapaEl, {
+			scrollWheelZoom: false,
+			smoothWheelZoom: false,
+		}).setView([cfg.mapaLat, cfg.mapaLng], cfg.mapaZoom);
 
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; OpenStreetMap',
 			maxZoom: 18,
 		}).addTo(g.map);
 
-		g.map.on('click', function () {
-			g.map.scrollWheelZoom.enable();
-		});
+		// Ctrl / ⌘ / Alt + rolagem = zoom (igual ao preview).
+		var container = g.map.getContainer();
+		container.addEventListener(
+			'wheel',
+			function (e) {
+				if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+					return;
+				}
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.deltaY > 0) {
+					g.map.zoomOut();
+				} else if (e.deltaY < 0) {
+					g.map.zoomIn();
+				}
+			},
+			{ passive: false }
+		);
+
+		// Dica visual.
+		if (!container.querySelector('.vb-oe-zoom-hint')) {
+			var hint = document.createElement('p');
+			hint.className = 'vb-oe-zoom-hint';
+			hint.textContent = 'Ctrl + rolagem para zoom';
+			container.appendChild(hint);
+		}
 
 		g.markers = L.layerGroup().addTo(g.map);
 		carregarDados(g);
