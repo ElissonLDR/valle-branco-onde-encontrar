@@ -41,7 +41,13 @@
 				produtoId: null,
 				pagina: 1,
 				carregando: false,
-				pronto: false,
+				origem: null,
+				_userMarker: null,
+				_boundBusca: false,
+				_boundBuscaBtn: false,
+				_boundCidade: false,
+				_boundGeo: false,
+				_closeBound: false,
 			};
 		}
 		return grupos[id];
@@ -561,23 +567,35 @@
 	}
 
 	function ligarEventos(g) {
-		if (g.pronto) {
-			return;
-		}
-		g.pronto = true;
+		if (g.buscaEl && !g._boundBusca) {
+			g._boundBusca = true;
+			var timerBusca = null;
 
-		if (g.buscaEl) {
+			g.buscaEl.addEventListener('input', function () {
+				if (timerBusca) {
+					clearTimeout(timerBusca);
+				}
+				timerBusca = setTimeout(function () {
+					executarBusca(g);
+				}, 250);
+			});
+
 			g.buscaEl.addEventListener('keydown', function (e) {
 				if (e.key === 'Enter') {
 					e.preventDefault();
+					if (timerBusca) {
+						clearTimeout(timerBusca);
+					}
 					executarBusca(g);
 				}
 			});
+
 			g.buscaEl.addEventListener('focus', function () {
 				if (g.buscaWrap) {
 					g.buscaWrap.classList.add('is-focused');
 				}
 			});
+
 			g.buscaEl.addEventListener('blur', function () {
 				setTimeout(function () {
 					if (g.buscaWrap) {
@@ -587,43 +605,97 @@
 			});
 		}
 
-		if (g.buscaBtn) {
+		if (g.buscaBtn && !g._boundBuscaBtn) {
+			g._boundBuscaBtn = true;
 			g.buscaBtn.addEventListener('click', function () {
 				executarBusca(g);
 			});
 		}
 
-		if (g.cidadeEl) {
+		if (g.cidadeEl && !g._boundCidade) {
+			g._boundCidade = true;
 			g.cidadeEl.addEventListener('change', function () {
 				g.pagina = 1;
 				render(g, { ajustarMapa: true });
+				if (g.mapaEl) {
+					g.mapaEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				}
 			});
 		}
 
-		if (g.geoBtn) {
+		if (g.geoBtn && !g._boundGeo) {
+			g._boundGeo = true;
 			g.geoBtn.addEventListener('click', function () {
 				if (!navigator.geolocation) {
+					window.alert('Seu navegador não permite localização.');
 					return;
 				}
+
 				g.geoBtn.disabled = true;
+				var textoOriginal = g.geoBtn.textContent;
+				g.geoBtn.textContent = 'Localizando...';
+
 				navigator.geolocation.getCurrentPosition(
 					function (pos) {
 						g.origem = {
 							lat: pos.coords.latitude,
 							lng: pos.coords.longitude,
 						};
+
 						if (g.map) {
-							L.circleMarker([g.origem.lat, g.origem.lng], {
-								radius: 8,
+							if (g._userMarker) {
+								g.map.removeLayer(g._userMarker);
+							}
+							g._userMarker = L.circleMarker([g.origem.lat, g.origem.lng], {
+								radius: 9,
 								color: '#1a3a6b',
+								fillColor: '#3b82f6',
+								fillOpacity: 0.85,
+								weight: 2,
 							}).addTo(g.map);
-							g.map.setView([g.origem.lat, g.origem.lng], 11);
+							g._userMarker.bindPopup('Você está aqui').openPopup();
+							g.map.flyTo([g.origem.lat, g.origem.lng], 12, { duration: 0.7 });
 						}
+
+						// Ordena a lista por distância a partir daqui.
+						if (g.locais) {
+							g.locais = g.locais.slice().sort(function (a, b) {
+								if (!a.lat || !b.lat) {
+									return 0;
+								}
+								return (
+									distanciaKm(g.origem.lat, g.origem.lng, a.lat, a.lng) -
+									distanciaKm(g.origem.lat, g.origem.lng, b.lat, b.lng)
+								);
+							});
+						}
+
+						g.pagina = 1;
 						g.geoBtn.disabled = false;
+						g.geoBtn.textContent = textoOriginal;
 						render(g, { ajustarMapa: false });
+
+						if (g.mapaEl) {
+							g.mapaEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+						}
 					},
-					function () {
+					function (err) {
 						g.geoBtn.disabled = false;
+						g.geoBtn.textContent = textoOriginal;
+						var msg = 'Não foi possível obter sua localização.';
+						if (err && err.code === 1) {
+							msg = 'Permissão de localização negada. Libere no navegador e tente de novo.';
+						} else if (err && err.code === 2) {
+							msg = 'Localização indisponível no momento.';
+						} else if (err && err.code === 3) {
+							msg = 'Tempo esgotado ao buscar localização.';
+						}
+						window.alert(msg);
+					},
+					{
+						enableHighAccuracy: true,
+						timeout: 15000,
+						maximumAge: 60000,
 					}
 				);
 			});
